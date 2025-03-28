@@ -16,52 +16,42 @@ export const goodsFromServer = [
 ];
 
 export const App = () => {
-  const initialGoods = [...goodsFromServer]; // Create a copy of the original array.
-  const [goods, setGoods] = useState(initialGoods);
-  const [sortField, setSortField] = useState(null);
+  const [goods, setGoods] = useState(goodsFromServer);
   const [isReversed, setIsReversed] = useState(false);
+  const [activeSort, setActiveSort] = useState(null);
 
-  // Sorting Function
-  const getSortedGoods = (field, reverse) => {
-    const sortedGoods = [...initialGoods];
-
-    if (field === 'alphabet') {
-      sortedGoods.sort((a, b) => a.localeCompare(b));
-    } else if (field === 'length') {
-      sortedGoods.sort((a, b) => a.length - b.length);
-    }
-
-    if (reverse) {
-      sortedGoods.reverse();
-    }
-
-    return sortedGoods;
-  };
-
-  // Sorting Handlers
   const sortAlphabetically = () => {
-    const sortedGoods = getSortedGoods('alphabet', isReversed);
+    const sortedGoods = [...goodsFromServer].sort((a, b) => a.localeCompare(b));
 
-    setGoods(sortedGoods);
-    setSortField('alphabet');
+    setGoods(isReversed ? [...sortedGoods].reverse() : sortedGoods);
+    setActiveSort('alphabet');
   };
 
   const sortByLength = () => {
-    const sortedGoods = getSortedGoods('length', isReversed);
+    const sortedGoods = [...goodsFromServer].sort(
+      (a, b) => a.length - b.length,
+    );
 
-    setGoods(sortedGoods);
-    setSortField('length');
+    setGoods(isReversed ? [...sortedGoods].reverse() : sortedGoods);
+
+    setActiveSort('length');
   };
 
-  const reverseGoods = () => {
-    setGoods([...goods].reverse());
+  const reverseList = () => {
+    const newGoods = [...goods].reverse();
+
+    setGoods(newGoods);
     setIsReversed(!isReversed);
+
+    if (JSON.stringify(newGoods) === JSON.stringify(goodsFromServer)) {
+      setActiveSort(null);
+    }
   };
 
-  const reset = () => {
-    setGoods(initialGoods);
-    setSortField(null);
+  const resetList = () => {
+    setGoods(goodsFromServer);
     setIsReversed(false);
+    setActiveSort(null);
   };
 
   return (
@@ -69,7 +59,7 @@ export const App = () => {
       <div className="buttons">
         <button
           type="button"
-          className={`button is-info ${sortField === 'alphabet' ? '' : 'is-light'}`}
+          className={`button is-info ${activeSort === 'alphabet' ? '' : 'is-light'}`}
           onClick={sortAlphabetically}
         >
           Sort alphabetically
@@ -77,7 +67,7 @@ export const App = () => {
 
         <button
           type="button"
-          className={`button is-success ${sortField === 'length' ? '' : 'is-light'}`}
+          className={`button is-success ${activeSort === 'length' ? '' : 'is-light'}`}
           onClick={sortByLength}
         >
           Sort by length
@@ -86,13 +76,17 @@ export const App = () => {
         <button
           type="button"
           className={`button is-warning ${isReversed ? '' : 'is-light'}`}
-          onClick={reverseGoods}
+          onClick={reverseList}
         >
           Reverse
         </button>
 
-        {(sortField || isReversed) && (
-          <button type="button" className="button is-danger" onClick={reset}>
+        {JSON.stringify(goods) !== JSON.stringify(goodsFromServer) && (
+          <button
+            type="button"
+            className="button is-danger"
+            onClick={resetList}
+          >
             Reset
           </button>
         )}
@@ -100,7 +94,7 @@ export const App = () => {
 
       <ul>
         {goods.map(good => (
-          <li key={good} data-cy="Good">
+          <li data-cy="Good" key={good}>
             {good}
           </li>
         ))}
